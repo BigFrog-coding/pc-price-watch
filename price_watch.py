@@ -128,8 +128,10 @@ def main():
     notified=state.setdefault("notified",{}); products=[]; errors=[]
     for cat in ("pc","gpu","ram"):
         try:
-            r=search(cfg["queries"][cat],key); print("{}: {} results".format(cat,len(r)))
-            products.extend(x for item in r if (x:=evaluate(cat,item,cfg)) is not None)
+            r=search(cfg["queries"][cat],key)
+            matches=[x for item in r if (x:=evaluate(cat,item,cfg)) is not None]
+            products.extend(matches)
+            print("{}: {} search results; {} matched product/spec/retailer filters".format(cat,len(r),len(matches)))
         except Exception as e: print("{} search failed: {}".format(cat,e),file=sys.stderr); errors.append(cat)
         time.sleep(float(cfg.get("seconds_between_searches",1)))
     unique={}
