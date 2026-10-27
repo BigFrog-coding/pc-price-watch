@@ -27,10 +27,10 @@ Open repository **Settings → Secrets and variables → Actions → New reposit
 Never commit real credentials. If a SerpApi key was previously pasted into a chat or committed to a repository, revoke it and create a replacement before using it.
 
 ## 3. Run and verify
-1. Open **Actions → PC price watch**.
-2. Select **Run workflow**.
-3. Open the run and inspect its logs. The bot sends an email only when new qualifying deals are found. If there are no new deals, no email is sent.
-4. If the run finds no deals, that does not confirm email delivery. Check the Resend dashboard and recipient restrictions. The workflow needs a new qualifying deal to exercise the normal send path.
+1. Open **Actions → PC price watch** and select **Run workflow**.
+2. For a delivery test, set **Send a test email only (skip shopping searches)** to **true**. This sends a test email without using SerpApi searches or changing alert history.
+3. After the test arrives, run it again with that option set to **false** to perform the real price check.
+4. Normal runs send an email only when new qualifying deals are found. If no new deals qualify, no email is sent. Check the Actions logs and Resend dashboard if the test fails.
 
 The workflow runs twice daily at 09:00 and 19:00 Eastern time in standard time (13:00 and 23:00 UTC). GitHub cron uses UTC, so these correspond to 08:00 and 18:00 during daylight time.
 
