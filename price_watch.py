@@ -96,7 +96,29 @@ def search(query,key):
     return data.get("shopping_results",[])
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("--dry-run",action="store_true"); args=ap.parse_args()
+    ap=argparse.ArgumentParser()
+    ap.add_argument("--dry-run",action="store_true")
+    ap.add_argument("--test-email",action="store_true",help="send a test email without running shopping searches")
+    args=ap.parse_args()
+    if args.test_email:
+        api_key=os.getenv("RESEND_API_KEY","").strip()
+        recipient=os.getenv("ALERT_EMAIL","").strip()
+        if not api_key or not recipient:
+            print("Missing RESEND_API_KEY or ALERT_EMAIL environment variable.",file=sys.stderr)
+            return 1
+        response=requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization":"Bearer "+api_key,"Content-Type":"application/json"},
+            json={"from":"PC Price Watch <onboarding@resend.dev>","to":[recipient],
+                  "subject":"PC Price Watch email test",
+                  "text":"Your PC Price Watch email configuration is working. This test did not run any shopping searches."},
+            timeout=30,
+        )
+        if not response.ok:
+            print("Test email failed (HTTP {}): {}".format(response.status_code,response.text[:1000]),file=sys.stderr)
+            return 1
+        print("Test email accepted by Resend for {}.".format(recipient))
+        return 0
     key=os.getenv("SERPAPI_API_KEY","").strip()
     if not key: print("Missing SERPAPI_API_KEY; set .env or GitHub Actions secret.",file=sys.stderr); return 2
     cfg=json.loads((ROOT/"config.json").read_text(encoding="utf-8"))
