@@ -89,11 +89,34 @@ def evaluate(category,item,cfg):
     if old is not None and old>price: promos.append("PRICE DROP SHOWN")
     return {"key":category+"|"+shop+"|"+norm(title),"category":category,"title":title,"retailer":shop,"price":round(price,2),"threshold":limit,"below_threshold":price<limit,"url":url,"review_notes":notes,"promotion_labels":list(dict.fromkeys(promos))}
 
-def search(query,key):
-    r=requests.get("https://serpapi.com/search.json",params={"engine":"google_shopping","q":query,"api_key":key,"gl":"us","hl":"en"},timeout=45); r.raise_for_status()
-    data=r.json()
-    if data.get("error"): raise RuntimeError(str(data["error"]))
-    return data.get("shopping_results",[])
+def search(query,key,max_pages=3):
+    """Fetch up to max_pages Google Shopping result pages when SerpApi provides a next-page token."""
+    results=[]
+    params={"engine":"google_shopping","q":query,"api_key":key,"gl":"us","hl":"en"}
+    seen=set()
+    for page in range(1,max_pages+1):
+        r=requests.get("https://serpapi.com/search.json",params=params,timeout=45)
+        r.raise_for_status()
+        data=r.json()
+        if data.get("error"): raise RuntimeError(str(data["error"]))
+        page_results=data.get("shopping_results",[])
+        results.extend(page_results)
+        print("  Search page {}: {} results".format(page,len(page_results)))
+        next_page=data.get("serpapi_pagination",{}).get("next")
+        next_token=data.get("serpapi_pagination",{}).get("next_page_token")
+        if not next_page and not next_token:
+            break
+        token=next_token
+        if token:
+            if token in seen: break
+            seen.add(token)
+            params={"engine":"google_shopping","q":query,"api_key":key,"gl":"us","hl":"en","start":page*len(page_results),"next_page_token":token}
+        elif isinstance(next_page,dict):
+            params={**params,**next_page}
+        else:
+            break
+        time.sleep(0.5)
+    return results
 
 def main():
     ap=argparse.ArgumentParser()
