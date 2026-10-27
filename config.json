@@ -1,0 +1,15 @@
+{
+  "pc_price_limit": 2200,
+  "gpu_price_limit": 1000,
+  "ram_price_limit": 350,
+  "min_repeat_alert_drop": 25,
+  "max_alerts_per_category_per_run": 3,
+  "allow_used_or_refurbished": false,
+  "seconds_between_searches": 1,
+  "pc_gpu_models": ["RTX 5070 Ti", "RTX 5080", "RTX 4080 Super", "RTX 4090", "RTX 5090", "RX 9070 XT", "RX 7900 XTX"],
+  "queries": {
+    "pc": "gaming desktop Ryzen 7 7800X3D OR 9800X3D RTX 5070 Ti 32GB DDR5 1TB NVMe liquid cooled clearance sale special offer discount",
+    "gpu": "new NVIDIA GeForce RTX 5070 Ti graphics card clearance sale special offer discount coupon",
+    "ram": "new 32GB DDR5 desktop RAM kit 2x16GB clearance sale special offer discount coupon"
+  }
+}
