@@ -32,7 +32,7 @@ Never commit real credentials. If a SerpApi key was previously pasted into a cha
 3. After the test arrives, run it again with that option set to **false** to perform the real price check.
 4. Normal runs send an email only when new qualifying deals are found. If no new deals qualify, no email is sent. Check the Actions logs and Resend dashboard if the test fails.
 
-The workflow runs twice daily at 09:00 and 19:00 Eastern time in standard time (13:00 and 23:00 UTC). GitHub cron uses UTC, so these correspond to 08:00 and 18:00 during daylight time.
+The workflow runs at 13:00 and 23:00 UTC. That is 09:00 and 19:00 Eastern during daylight time, and 08:00 and 18:00 Eastern during standard time. GitHub cron uses UTC, so the local wall-clock times shift seasonally.
 
 ## 4. Test locally on Windows PowerShell
 Install Python 3.11+ from https://www.python.org/downloads/windows/, then:
