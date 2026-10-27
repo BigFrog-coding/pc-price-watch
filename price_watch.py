@@ -131,7 +131,11 @@ def main():
             r=search(cfg["queries"][cat],key)
             matches=[x for item in r if (x:=evaluate(cat,item,cfg)) is not None]
             products.extend(matches)
-            print("{}: {} search results; {} matched product/spec/retailer filters".format(cat,len(r),len(matches)))
+            price_matches=[p for p in matches if p["below_threshold"]]
+            print("{}: {} search results; {} matched product/spec/retailer filters; {} below price threshold".format(cat,len(r),len(matches),len(price_matches)))
+            for p in sorted(matches,key=lambda x:x["price"])[:10]:
+                status="UNDER THRESHOLD" if p["below_threshold"] else "OVER/AT THRESHOLD"
+                print("  CANDIDATE [{}] ${:.2f} (limit ${:.2f}) | {} | {} | {}".format(status,p["price"],p["threshold"],p["retailer"],p["title"][:100],p["url"]))
         except Exception as e: print("{} search failed: {}".format(cat,e),file=sys.stderr); errors.append(cat)
         time.sleep(float(cfg.get("seconds_between_searches",1)))
     unique={}
