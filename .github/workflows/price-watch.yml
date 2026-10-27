@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "0 13,23 * * *"
   workflow_dispatch:
+    inputs:
+      test_email:
+        description: "Send a test email only (skip shopping searches)"
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -20,13 +26,21 @@ jobs:
           python-version: "3.12"
       - name: Install dependencies
         run: python -m pip install --upgrade pip && pip install -r requirements.txt
+      - name: Send test email
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.test_email }}
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+        run: python price_watch.py --test-email
       - name: Search prices and send email alerts
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.test_email }}
         env:
           SERPAPI_API_KEY: ${{ secrets.SERPAPI_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
         run: python price_watch.py
       - name: Save alert history
+        if: ${{ github.event_name != 'workflow_dispatch' || !inputs.test_email }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
