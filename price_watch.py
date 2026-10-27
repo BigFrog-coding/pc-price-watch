@@ -133,12 +133,24 @@ def main():
     for m in messages: print("\n--- ALERT ---\n"+m+"\n-------------")
     dry=args.dry_run or os.getenv("DRY_RUN","").lower() in ("1","true","yes")
     if messages and not dry:
-        vals={n:os.getenv(n,"").strip() for n in ("TWILIO_ACCOUNT_SID","TWILIO_AUTH_TOKEN","TWILIO_FROM_NUMBER","ALERT_PHONE_NUMBER")}
-        if any(not v for v in vals.values()): print("Missing Twilio environment variables.",file=sys.stderr); return 1
-        from twilio.rest import Client
-        client=Client(vals["TWILIO_ACCOUNT_SID"],vals["TWILIO_AUTH_TOKEN"])
-        for m in messages: client.messages.create(body=m,from_=vals["TWILIO_FROM_NUMBER"],to=vals["ALERT_PHONE_NUMBER"])
-    elif dry: print("DRY RUN: no texts sent and alert history not saved.")
+        api_key=os.getenv("RESEND_API_KEY","").strip()
+        recipient=os.getenv("ALERT_EMAIL","").strip()
+        if not api_key or not recipient:
+            print("Missing RESEND_API_KEY or ALERT_EMAIL environment variable.",file=sys.stderr)
+            return 1
+        subject="PC Price Watch: {} new deal{}".format(len(messages),"" if len(messages)==1 else "s")
+        body="New qualifying PC/component price alerts:\n\n"+"\n\n".join(messages)+"\n\nPrices and promotion signals can change; verify seller, condition, specs, and final checkout price."
+        response=requests.post(
+            "https://api.resend.com/emails",
+            headers={"Authorization":"Bearer "+api_key,"Content-Type":"application/json"},
+            json={"from":"PC Price Watch <onboarding@resend.dev>","to":[recipient],"subject":subject,"text":body},
+            timeout=30,
+        )
+        if not response.ok:
+            print("Email send failed (HTTP {}): {}".format(response.status_code,response.text[:1000]),file=sys.stderr)
+            return 1
+        print("Email alert sent to {}.".format(recipient))
+    elif dry: print("DRY RUN: no email sent and alert history not saved.")
     else: print("No new qualifying price alerts.")
     if not dry: state_path.write_text(json.dumps(state,indent=2)+"\n",encoding="utf-8")
     return 1 if len(errors)==3 else 0
